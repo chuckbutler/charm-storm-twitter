@@ -1,6 +1,0 @@
-[submodule "SimpleKafkaProducer"]
-	path = SimpleKafkaProducer
-	url = git://github.com/zdata-inc/SimpleKafkaProducer.git
-[submodule "SimpleNodeJSReport"]
-	path = SimpleNodeJSReport
-	url = git://github.com/zdata-inc/SimpleNodeJSReport.git

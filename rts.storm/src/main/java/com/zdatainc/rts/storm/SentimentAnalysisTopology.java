@@ -77,8 +77,8 @@ public class SentimentAnalysisTopology
         topology.setBolt("score", new SentimentScoringBolt(), 4)
                 .shuffleGrouping("join");
 
-        topology.setBolt("hdfs", new HDFSBolt(), 4)
-                .shuffleGrouping("score");
+        /** topology.setBolt("hdfs", new HDFSBolt(), 4)
+                .shuffleGrouping("score"); **/
         topology.setBolt("nodejs", new NodeNotifierBolt(), 4)
                 .shuffleGrouping("score");
 

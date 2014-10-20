@@ -27,7 +27,7 @@ public class TwitterFilterBolt extends BaseBasicBolt
 
     public void execute(Tuple input, BasicOutputCollector collector)
     {
-        LOGGER.debug("filttering incoming tweets");
+        LOGGER.debug("filtering incoming tweets");
         String json = input.getString(0);
         try
         {
