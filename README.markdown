@@ -1,10 +1,10 @@
 # Storm Sample Project #
 
-This is a set of projects for demonstrating and testing Storm and Kafka by performing Twitter sentiment analysis.
+This is a set of projects for demonstrating and testing an architecture mixing Kafka, Hadoop, Storm, Redis and node.js by performing Twitter sentiment analysis.
 
 # How to use this project?
 
-This project contains a simple Storm topology as described on [ZData](http://www.zdatainc.com/2014/07/real-time-streaming-apache-storm-apache-kafka/) blog.
+This project contains a simple Storm topology as described on [ZData](http://www.zdatainc.com/2014/07/real-time-streaming-apache-storm-apache-kafka/) blog. 
 
 In order to use it, you will need
 
@@ -55,10 +55,10 @@ Once you do that, you'll have to edit the configuration file with your favorite 
 
 * rts.storm.workers: is the number of nodes in your storm cluster that will be consumed to perform the topology. If you deploy less than this number of nodes, the topology will fail to run and let you know you exhausted the resources.
 * rts.storm.zkhosts: this is the entry point of the kafka_spout. The Storm topology will ask your ZooKeeper cluster which source it can consumer. On the other side (kafka server/broker) you can only mention 1 server even if you run a HA ZooKeeper cluster. So make sure to input the same or you may end up with a problem where your Kafka Producers are not declared to the topology. Obviously this doesn't scale to production (yet) but it will be OK for demonstrations and PoCs.
-* rts.storm.webserv: <Full HTTP URL of the node.js app>
-* rts.storm.kafka_topic: Name of the twitter feed you set. Do not change this if you use my configuration as it is hard coded in the Kafka configuration.
+* rts.storm.webserv: <Full HTTP URL of the node.js app>. 
+* rts.storm.kafka_topic: Name of the twitter feed you set. Do not change this if you use my configuration as it is hard coded in the Kafka configuration for now.
 * rts.storm.hdfs_output_dir: Folder where the output of the topology will be stored. Note this requires the Storm Nodes to be located on the same filesystem as the HDFS nodes.
-rts.storm.hdfs_output_file: Name of the output file. Node how you can use variables from this very same configuration file.
+* rts.storm.hdfs_output_file: Name of the output file. Node how you can use variables from this very same configuration file. This requires the Storm Workers to be colocated on HDFS nodes. Current status of the charms for Hadoop prevent this to happen for now. 
 
 ### Other configuration points
 
@@ -68,7 +68,7 @@ There are 3 files that are used by the topology to score the tweets, all stored 
 * pos-words: same for the positive sentiments
 * stop-words: those words are considered neutral and are removed from the tweets before analysis.
 
-You can edit those lists prior to compilation as needed.  
+You can edit those lists prior to compilation as needed for an opinionated analysis.  
 
 ### Compilation
 
@@ -129,12 +129,14 @@ The result of this will be the creation of all necessary paths and files to gene
 
 1. Start the Kafka Server (Broker)
 
-See the related project for more information but assuming this was deployed with Juju,
+  1.1. Manually
+
+See the related project for more information. To start it manually you can do: 
 
     :~# cd /opt/kafka
     :~# ./bin/kafka-server-start.sh /opt/kafka/config/server.properties
 
-That makes sure you have a broker ready to welcome the stream of data from Twitter.
+<That makes sure you have a broker ready to welcome the stream of data from Twitter. 
 
 The lines of log should end like:
 
@@ -160,13 +162,23 @@ The lines of log should end like:
     [2014-10-20 07:56:02,792] INFO [ReplicaFetcherManager on broker 0] Removed fetcher for partitions [twitter.live,0],[twitter.live,1] (kafka.server.ReplicaFetcherManager)
     [2014-10-20 07:56:03,255] INFO [ReplicaFetcherManager on broker 0] Removed fetcher for partitions [twitter.live,0],[twitter.live,1] (kafka.server.ReplicaFetcherManager)
 
+  1.2. As a service
+
+Assuming this was deployed with Juju, Kafka would be a daemon started automatically: 
+
+    root@kafka-0:~# service kafka <start | stop | restart>
+
+Note this require your Zookeeper cluster to be up & running. 
+
 2. Start the Kafka Producer
+
+  2.1. Manually
 
 In  the Kafka language, Producer means your "data source collection hub". It's the primary Kafka node that connects to your raw data source, in our case a Twitter Streaming API feed.
 
-For this we use an old version of https://github.com/NFLabs/kafka-twitter.git
+For this we use an old version of https://github.com/NFLabs/kafka-twitter.git which we refactored a little bit. 
 
-See the related project for more information but assuming this was deployed with Juju on the same node as you Kafka Server,
+See the related project for more information but assuming this was deployed with Juju on the same node as you Kafka Server, you can start it in command line with 
 
     :~# cd /opt/kafka-twitter
     :~# ./gradlew run -Pargs="/opt/kafka-twitter/conf/producer.conf"
@@ -187,6 +199,16 @@ The output should then be:
     12963 [Twitter Stream consumer-1[Establishing connection]] INFO twitter4j.TwitterStreamImpl - Receiving status stream.
     > Building 75% > :run
 
+  2.2. As a service 
+
+In the latest version of the project this has been converted to a service which you can start with 
+
+    root@kafka-0:~# service kafka-twitter <start | stop | restart>
+
+This require a Kafka Broker to be running, but it doesn't have to be on the same node. 
+
+  2.3 Testing
+
 If you want to check if it really works, Kafka hosts a log of what it does in /tmp
 
     ubuntu@kafka-0:~$ ls -la /tmp/kafka-logs/twitter.live-0/
@@ -204,11 +226,13 @@ If you want to check if it really works, Kafka hosts a log of what it does in /t
     -rw-r--r-- 1 root root    224728 Oct 20 08:01 00000000000000605240.index
     -rw-r--r-- 1 root root 164450494 Oct 20 08:01 00000000000000605240.log
 
-As you can see, each log batch is 512MB then it gets rotated. However the old logs are kept so beware of the disk beast.
+As you can see, each log batch is 512MB then it gets rotated. However the old logs are kept so beware of the disk beast. You can change that in the Kafka Configuration. (see the [kafka-twitter](https://github.com/SaMnCo/kafka-twitter) project) 
 
 3. Start the Storm Topology and grep for the output
 
-Now get back to your storm node, and load the topology:
+3.1. Manually
+
+Now get back to your storm node, and load the topology from the CLI:
 
     root@storm-nimbus:storm-sentiment-analysis/rts.storm# /usr/lib/storm/bin/storm jar target/rts.storm-0.0.1.jar com.zdatainc.rts.storm.SentimentAnalysisTopology | grep "Sent"
     Sent:{"id": "524109687575171072", "text": "rt andreacortejo share  message    a chance  win wonderful prizes surpriseyourself httptcobqtwcvo", "pos": "0.000000", "neg": "0.125000", "score": "negative" }
@@ -218,7 +242,13 @@ Now get back to your storm node, and load the topology:
 
 As you can see the results are a bit weird for now, but working on it. If you remove the grep part of the command you'll have a very verbose output.
 
-Note the emission to the node application doesn't work yet.
+3.2 As a service
+
+You should then load the topology within Storm with:
+
+    root@storm-nimbus:storm-sentiment-analysis/rts.storm# /usr/lib/storm/bin/storm jar target/rts.storm-0.0.1.jar com.zdatainc.rts.storm.SentimentAnalysisTopology sentiment-analysis
+
+You should then access your Storm UI on port 8080 of the nimbus server to see the topology loaded and running. 
 
 # Editing the code
 
@@ -350,17 +380,40 @@ This may be the root cause of the NodeNotifier not working. The Java Httpcompone
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
-      <version>4.3.5</version>
+      <version>4.3.2</version>
       <scope>provided</scope>
     </dependency>
 
-## Use the Node.js Application
+## HTTP Libraries not updated on Storm Workers
 
-In the current implementation the code for the NodeNotifier seems to be broken. However, it is possible to visalize the results with the below CLI:
+By default, Hortonworks Storm Workers load versions 4.1.1 of HTTP Components. Make sure you run the following commands from your computer (or locally, this is pretty straightforward)
 
-root@storm-nimbus:storm-sentiment-analysis/rts.storm# /usr/lib/storm/bin/storm jar target/rts.storm-0.0.1.jar com.zdatainc.rts.storm.SentimentAnalysisTopology | grep "Sent" | cut -f2- -d":" | xargs -I XXX curl "http://nodejs-app:3000/post" -d 'XXX'
+    :~$ juju run --service=storm-worker "wget http://central.maven.org/maven2/org/apache/httpcomponents/httpcore/4.3.2/httpcore-4.3.2.jar -O /usr/lib/storm/lib/httpcore-4.3.2.jar"
+    :~$ juju run --service=storm-worker "wget http://central.maven.org/maven2/org/apache/httpcomponents/httpclient/4.3.2/httpclient-4.3.2.jar -O /usr/lib/storm/lib/httpclient-4.3.2.jar"
+    :~$ juju run --service=storm-worker "rm -f /usr/lib/storm/lib/httpclient-4.1.1.jar /usr/lib/storm/lib/httpcore-4.1.jar"
+    :~$ juju run --service=nimbus-server "wget http://central.maven.org/maven2/org/apache/httpcomponents/httpcore/4.3.2/httpcore-4.3.2.jar -O /usr/lib/storm/lib/httpcore-4.3.2.jar"
+    :~$ juju run --service=nimbus-server "wget http://central.maven.org/maven2/org/apache/httpcomponents/httpclient/4.3.2/httpclient-4.3.2.jar -O /usr/lib/storm/lib/httpclient-4.3.2.jar"
+    :~$ juju run --service=nimbus-server "rm -f /usr/lib/storm/lib/httpclient-4.1.1.jar /usr/lib/storm/lib/httpcore-4.1"
+    :~$ juju run --service=storm-worker "supervisorctl stop all"
+    :~$ juju run --service=nimbus-server "supervisorctl restart all"
+    :~$ juju run --service=storm-worker "supervisorctl start all"
 
-This will actually post the results on the web page. Not nice but working.
+Then you'll have the right versions running. This has been reported as a bug in the charms and will be updated soon. 
+
+## Failure after a few days
+
+ZooKeeper nodes tend to fail after a few days if nothing is done. This is because ZK keeps logging information for ever and doesn't cleanup logs by default. This behavior can be changed by adding this to the crontab: 
+
+    0 0 * * * /usr/lib/zookeeper/bin/zkCleanup.sh -n 3
+
+Then restart the Cron service. 
+
+   root@hdp-zookeper:~$# service cron restart
+
+## Failure to store on HDFS
+
+The current status of the Charms to deploy Hortonworks Hadoop distribution prevent colocation of services, which is required for this example. This has been reported as a bug and shall be fixed soon. 
+
 ## License ##
 
 The code in this project is made available as free and open source software
