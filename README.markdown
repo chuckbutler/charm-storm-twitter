@@ -176,7 +176,7 @@ Note this require your Zookeeper cluster to be up & running.
 
 In  the Kafka language, Producer means your "data source collection hub". It's the primary Kafka node that connects to your raw data source, in our case a Twitter Streaming API feed.
 
-For this we use an old version of https://github.com/NFLabs/kafka-twitter.git which we refactored a little bit.
+For this we use an old version of https://github.com/NFLabs/kafka-twitter.git which we refactored a little bit (see https://github.com/SaMnCo/charm-kafka-twitter)
 
 See the related project for more information but assuming this was deployed with Juju on the same node as you Kafka Server, you can start it in command line with
 
@@ -226,7 +226,7 @@ If you want to check if it really works, Kafka hosts a log of what it does in /t
     -rw-r--r-- 1 root root    224728 Oct 20 08:01 00000000000000605240.index
     -rw-r--r-- 1 root root 164450494 Oct 20 08:01 00000000000000605240.log
 
-As you can see, each log batch is 512MB then it gets rotated. However the old logs are kept so beware of the disk beast. You can change that in the Kafka Configuration. (see the [kafka-twitter](https://github.com/SaMnCo/kafka-twitter) project)
+As you can see, each log batch is 512MB then it gets rotated. However the old logs are kept so beware of the disk beast. You can change that in the Kafka Configuration. (see the [kafka-twitter](https://github.com/SaMnCo/charm-kafka-twitter) project)
 
 3. Start the Storm Topology and grep for the output
 
