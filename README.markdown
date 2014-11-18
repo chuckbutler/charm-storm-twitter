@@ -4,7 +4,7 @@ This is a set of projects for demonstrating and testing an architecture mixing K
 
 # How to use this project?
 
-This project contains a simple Storm topology as described on [ZData](http://www.zdatainc.com/2014/07/real-time-streaming-apache-storm-apache-kafka/) blog. 
+This project contains a simple Storm topology as described on [ZData](http://www.zdatainc.com/2014/07/real-time-streaming-apache-storm-apache-kafka/) blog.
 
 In order to use it, you will need
 
@@ -55,10 +55,10 @@ Once you do that, you'll have to edit the configuration file with your favorite 
 
 * rts.storm.workers: is the number of nodes in your storm cluster that will be consumed to perform the topology. If you deploy less than this number of nodes, the topology will fail to run and let you know you exhausted the resources.
 * rts.storm.zkhosts: this is the entry point of the kafka_spout. The Storm topology will ask your ZooKeeper cluster which source it can consumer. On the other side (kafka server/broker) you can only mention 1 server even if you run a HA ZooKeeper cluster. So make sure to input the same or you may end up with a problem where your Kafka Producers are not declared to the topology. Obviously this doesn't scale to production (yet) but it will be OK for demonstrations and PoCs.
-* rts.storm.webserv: <Full HTTP URL of the node.js app>. 
+* rts.storm.webserv: <Full HTTP URL of the node.js app>.
 * rts.storm.kafka_topic: Name of the twitter feed you set. Do not change this if you use my configuration as it is hard coded in the Kafka configuration for now.
 * rts.storm.hdfs_output_dir: Folder where the output of the topology will be stored. Note this requires the Storm Nodes to be located on the same filesystem as the HDFS nodes.
-* rts.storm.hdfs_output_file: Name of the output file. Node how you can use variables from this very same configuration file. This requires the Storm Workers to be colocated on HDFS nodes. Current status of the charms for Hadoop prevent this to happen for now. 
+* rts.storm.hdfs_output_file: Name of the output file. Node how you can use variables from this very same configuration file. This requires the Storm Workers to be colocated on HDFS nodes. Current status of the charms for Hadoop prevent this to happen for now.
 
 ### Other configuration points
 
@@ -131,12 +131,12 @@ The result of this will be the creation of all necessary paths and files to gene
 
   1.1. Manually
 
-See the related project for more information. To start it manually you can do: 
+See the related project for more information. To start it manually you can do:
 
     :~# cd /opt/kafka
     :~# ./bin/kafka-server-start.sh /opt/kafka/config/server.properties
 
-<That makes sure you have a broker ready to welcome the stream of data from Twitter. 
+<That makes sure you have a broker ready to welcome the stream of data from Twitter.
 
 The lines of log should end like:
 
@@ -164,11 +164,11 @@ The lines of log should end like:
 
   1.2. As a service
 
-Assuming this was deployed with Juju, Kafka would be a daemon started automatically: 
+Assuming this was deployed with Juju, Kafka would be a daemon started automatically:
 
     root@kafka-0:~# service kafka <start | stop | restart>
 
-Note this require your Zookeeper cluster to be up & running. 
+Note this require your Zookeeper cluster to be up & running.
 
 2. Start the Kafka Producer
 
@@ -176,9 +176,9 @@ Note this require your Zookeeper cluster to be up & running.
 
 In  the Kafka language, Producer means your "data source collection hub". It's the primary Kafka node that connects to your raw data source, in our case a Twitter Streaming API feed.
 
-For this we use an old version of https://github.com/NFLabs/kafka-twitter.git which we refactored a little bit. 
+For this we use an old version of https://github.com/NFLabs/kafka-twitter.git which we refactored a little bit.
 
-See the related project for more information but assuming this was deployed with Juju on the same node as you Kafka Server, you can start it in command line with 
+See the related project for more information but assuming this was deployed with Juju on the same node as you Kafka Server, you can start it in command line with
 
     :~# cd /opt/kafka-twitter
     :~# ./gradlew run -Pargs="/opt/kafka-twitter/conf/producer.conf"
@@ -199,13 +199,13 @@ The output should then be:
     12963 [Twitter Stream consumer-1[Establishing connection]] INFO twitter4j.TwitterStreamImpl - Receiving status stream.
     > Building 75% > :run
 
-  2.2. As a service 
+  2.2. As a service
 
-In the latest version of the project this has been converted to a service which you can start with 
+In the latest version of the project this has been converted to a service which you can start with
 
     root@kafka-0:~# service kafka-twitter <start | stop | restart>
 
-This require a Kafka Broker to be running, but it doesn't have to be on the same node. 
+This require a Kafka Broker to be running, but it doesn't have to be on the same node.
 
   2.3 Testing
 
@@ -226,7 +226,7 @@ If you want to check if it really works, Kafka hosts a log of what it does in /t
     -rw-r--r-- 1 root root    224728 Oct 20 08:01 00000000000000605240.index
     -rw-r--r-- 1 root root 164450494 Oct 20 08:01 00000000000000605240.log
 
-As you can see, each log batch is 512MB then it gets rotated. However the old logs are kept so beware of the disk beast. You can change that in the Kafka Configuration. (see the [kafka-twitter](https://github.com/SaMnCo/kafka-twitter) project) 
+As you can see, each log batch is 512MB then it gets rotated. However the old logs are kept so beware of the disk beast. You can change that in the Kafka Configuration. (see the [kafka-twitter](https://github.com/SaMnCo/kafka-twitter) project)
 
 3. Start the Storm Topology and grep for the output
 
@@ -248,7 +248,7 @@ You should then load the topology within Storm with:
 
     root@storm-nimbus:storm-sentiment-analysis/rts.storm# /usr/lib/storm/bin/storm jar target/rts.storm-0.0.1.jar com.zdatainc.rts.storm.SentimentAnalysisTopology sentiment-analysis
 
-You should then access your Storm UI on port 8080 of the nimbus server to see the topology loaded and running. 
+You should then access your Storm UI on port 8080 of the nimbus server to see the topology loaded and running.
 
 # Editing the code
 
@@ -398,21 +398,29 @@ By default, Hortonworks Storm Workers load versions 4.1.1 of HTTP Components. Ma
     :~$ juju run --service=nimbus-server "supervisorctl restart all"
     :~$ juju run --service=storm-worker "supervisorctl start all"
 
-Then you'll have the right versions running. This has been reported as a bug in the charms and will be updated soon. 
+Then you'll have the right versions running. This has been reported as a bug in the charms and will be updated soon.
+
+## Topology failing after a few tweets
+
+It happens that the default netty configuration loaded with Hortonworks Storm and Juju is very picky. The below lines shall be added to /etc/storm/conf/storm.yaml
+
+    storm.messaging.netty.max_retries: 300
+    storm.messaging.netty.max_wait_ms: 2000
+    storm.messaging.netty.min_wait_ms: 100
 
 ## Failure after a few days
 
-ZooKeeper nodes tend to fail after a few days if nothing is done. This is because ZK keeps logging information for ever and doesn't cleanup logs by default. This behavior can be changed by adding this to the crontab: 
+ZooKeeper nodes tend to fail after a few days if nothing is done. This is because ZK keeps logging information for ever and doesn't cleanup logs by default. This behavior can be changed by adding this to the crontab:
 
     0 0 * * * /usr/lib/zookeeper/bin/zkCleanup.sh -n 3
 
-Then restart the Cron service. 
+Then restart the Cron service.
 
    root@hdp-zookeper:~$# service cron restart
 
 ## Failure to store on HDFS
 
-The current status of the Charms to deploy Hortonworks Hadoop distribution prevent colocation of services, which is required for this example. This has been reported as a bug and shall be fixed soon. 
+The current status of the Charms to deploy Hortonworks Hadoop distribution prevent colocation of services, which is required for this example. This has been reported as a bug and shall be fixed soon.
 
 ## License ##
 
