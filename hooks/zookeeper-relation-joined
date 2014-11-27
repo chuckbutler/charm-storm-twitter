@@ -1,0 +1,28 @@
+#!/bin/sh
+
+set -ex
+HOME=$PWD
+. ${HOME}/hooks/common.sh
+
+juju-log "$JUJU_REMOTE_UNIT joined"
+
+ZOOKEEPER_MEMBER_ADDRESS=`relation-get private-address $JUJU_REMOTE_UNIT`
+ZOOKEEPER_MEMBER_PORT=`relation-get port $JUJU_REMOTE_UNIT`
+
+if [ -z "${ZOOKEEPER_MEMBER_ADDRESS}"  ] || [ -z "${ZOOKEEPER_MEMBER_PORT}"  ] ; then
+    exit 0
+fi
+
+MEMBERS=""
+for MEMBER in `relation-list` ; do  
+        juju-log "Adding $BROKER to configuration"
+        MEMBER_HOST=`relation-get private-address ${MEMBER}`
+        MEMBER_PORT=`relation-get port ${MEMBER}`
+        MEMBERS="${MEMBERS},${MEMBER_HOST}:${MEMBER_PORT}"
+done
+
+sed -i s/^rts\.storm\.zkhosts.*/rts\.storm\.zkhosts\:\ "${MEMBERS}"/ ${CONFIG_FILE}
+
+${HOME}/hooks/config-changed
+
+exit 0

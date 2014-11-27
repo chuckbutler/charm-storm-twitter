@@ -1,0 +1,16 @@
+#!/bin/sh
+
+set -ex
+HOME=$PWD
+. ${HOME}/hooks/common.sh
+
+juju-log "$JUJU_REMOTE_UNIT departed"
+
+ZOOKEEPER_MEMBER_ADDRESS=`relation-get private-address $JUJU_REMOTE_UNIT`
+ZOOKEEPER_MEMBER_PORT`relation-get port $JUJU_REMOTE_UNIT`
+
+sed -i s/\,${ZOOKEEPER_MEMBER_ADDRESS}\:${ZOOKEEPER_MEMBER_PORT}// ${CONFIG_FILE}
+
+${HOME}/hooks/stop
+
+exit 0

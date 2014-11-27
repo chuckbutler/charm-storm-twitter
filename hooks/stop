@@ -1,0 +1,14 @@
+#!/bin/bash
+
+set -ex
+HOME=$PWD
+. ${HOME}/hooks/common.sh
+
+XFACTOR=`cat .current_topology | head -n1`
+
+juju-log "Killing topology sentiment-analysis-${XFACTOR}..."
+storm kill "sentiment-analysis-${XFACTOR}"
+
+sleep 3
+exit 0
+

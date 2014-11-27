@@ -1,0 +1,23 @@
+#!/bin/bash
+
+set -ex 
+
+HOME=$PWD
+. ${HOME}/hooks/common.sh
+
+juju-log "Starting Installation"
+juju-log "Installing prerequisites"
+apt-get install -y -qq maven
+
+juju-log "Copying latest charm files"
+([ ! -d ${DEST_FOLDER} ] && mkdir -p ${DEST_FOLDER}) || rm -rf ${DEST_FOLDER}/*
+
+cp -r data/* ${DEST_FOLDER}/
+
+juju-log "Generating new configuration file"
+[ -f ${CONFIG_FILE} ] && mv ${CONFIG_FILE} ${CONFIG_FILE}.bak
+cp ${CONFIG_FILE}.template ${CONFIG_FILE}
+
+juju-log "Installation finished"
+
+exit 0

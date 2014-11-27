@@ -1,0 +1,11 @@
+#!/bin/sh
+
+set -ex
+HOME=$PWD
+. ${HOME}/hooks/common.sh
+
+sed -i s/^rts\.storm\.zkhosts.*/rts\.storm\.zkhosts\:\ ZOOKEEPER_MEMBER_ADDRESS\:ZOOKEEPER_MEMBER_PORT ${CONFIG_FILE}
+
+${HOME}/hooks/stop
+
+exit 0

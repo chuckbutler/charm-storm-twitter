@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -ex
+HOME=$PWD
+. ${HOME}/hooks/common.sh
+
+XFACTOR=`date +%s | sha256sum | base64 | head -c 32 ; echo`
+echo ${XFACTOR} | tee .current_topology
+
+juju-log "Deploying topology to cluster with unique name sentiment-analysis-${XFACTOR}..."
+cd "${DEST_FOLDER}/${APPNAME}"
+[ -f ${JARFILE} ] && storm jar ${JARFILE} com.zdatainc.rts.storm.SentimentAnalysisTopology sentiment-analysis-${XFACTOR}
+cd -
+
+exit 0
+

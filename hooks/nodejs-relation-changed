@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -ex
+HOME=$PWD
+. ${HOME}/hooks/common.sh
+
+juju-log "$JUJU_REMOTE_UNIT modified its settings"
+
+${HOME}/hooks/nodejs-relation-broken
+${HOME}/hooks/nodejs-relation-joined
+
+exit 0

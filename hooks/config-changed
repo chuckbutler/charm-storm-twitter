@@ -1,0 +1,27 @@
+#!/bin/bash
+
+set -ex
+HOME=$PWD
+. ${HOME}/hooks/common.sh
+
+# Charm Variables
+ZOOKEEPER_MEMBER_ADDRESS=`grep ZOOKEEPER_MEMBER_ADDRESS ${CONFIG_FILE} | wc -l`
+NODEJS_APP_URL=`grep NODEJS_APP_URL ${CONFIG_FILE} | wc -l`
+
+juju-log "Validating configuration"
+if [ "${ZOOKEEPER_CLUSTER_ADDRESS}" = "1" -o \
+  "${NODEJS_APP_URL}" = "1" ]
+then
+  juju-log "Missing relation. Exiting smoothly"
+  exit 0
+fi
+
+juju-log "Compiling Topology..."
+cd "${DEST_FOLDER}/${APPNAME}"
+mvn package
+cd -
+
+juju-log "Do not forget to add a relation with a Zookeeper and the Node.js application server for normal behavior"
+juju-log "Configuration done. Moving to next stage"
+
+exit 0

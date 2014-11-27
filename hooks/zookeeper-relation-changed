@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -ex
+HOME=$PWD
+. ${HOME}/hooks/common.sh
+
+juju-log "$JUJU_REMOTE_UNIT modified its settings"
+
+${HOME}/hooks/stop
+${HOME}/hooks/zookeeper-relation-joined
+
+exit 0
