@@ -9,8 +9,7 @@ ZOOKEEPER_MEMBER_ADDRESS=`grep ZOOKEEPER_MEMBER_ADDRESS ${CONFIG_FILE} | wc -l`
 NODEJS_APP_URL=`grep NODEJS_APP_URL ${CONFIG_FILE} | wc -l`
 
 juju-log "Validating configuration"
-if [ "${ZOOKEEPER_CLUSTER_ADDRESS}" = "1" -o \
-  "${NODEJS_APP_URL}" = "1" ]
+if [ "${ZOOKEEPER_CLUSTER_ADDRESS}" = "1" -o "${NODEJS_APP_URL}" = "1" ]
 then
   juju-log "Missing relation. Exiting smoothly"
   exit 0

@@ -6,6 +6,14 @@ HOME=$PWD
 
 XFACTOR=`cat .current_topology | head -n1`
 
+STATUS="`storm list | grep 'No topologies running.' | wc -l`"
+
+if [ "${STATUS}" = "1" ] ; then
+    juju-log "No Topologies running. Exiting gracefully"
+    exit 0
+fi
+
+
 juju-log "Killing topology sentiment-analysis-${XFACTOR}..."
 storm kill "sentiment-analysis-${XFACTOR}"
 
