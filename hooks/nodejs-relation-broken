@@ -4,7 +4,7 @@ set -ex
 HOME=$PWD
 . ${HOME}/hooks/common.sh
 
-sed -i s/^rts\.storm\.webserv.*/rts\.storm\.webserv\:\ NODEJS_APP_URL\:NODEJS_APP_PORT\/NODEJS_APP_URI/ ${CONFIG_FILE}
+sed -i s/^rts\.storm\.webserv.*/rts\.storm\.webserv\:\ "NODEJS_APP_URL"/ ${CONFIG_FILE}
 
 ${HOME}/hooks/stop
 
