@@ -23,4 +23,6 @@ cd -
 juju-log "Do not forget to add a relation with a Zookeeper and the Node.js application server for normal behavior"
 juju-log "Configuration done. Moving to next stage"
 
+${HOME}/hooks/start
+
 exit 0
