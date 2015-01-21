@@ -6,7 +6,9 @@ HOME=$PWD
 
 juju-log "$JUJU_REMOTE_UNIT departed"
 
-sed -i s/^rts\.storm\.webserv.*/rts\.storm\.webserv\:\ NODEJS_APP_URL\:NODEJS_APP_PORT\/NODEJS_APP_URI/ ${CONFIG_FILE}
+NODEJS_APP_URL="NODEJS_APP_URL\:NODEJS_APP_PORT\/NODEJS_APP_URI"
+
+sed -i s/^rts\.storm\.webserv.*/rts\.storm\.webserv\:\ "${NODEJS_APP_URL}"/ ${CONFIG_FILE}
 
 ${HOME}/hooks/stop
 
